@@ -42,6 +42,10 @@
     <button type="button" id="testBtn">測試連線</button>
     <div class="result" id="testResult" role="status" aria-live="polite" hidden></div>
   </section>
+  <section class="card api-test">
+    <button type="button" id="askBtn">測試 Gemini</button>
+    <div class="result" id="askResult" role="status" aria-live="polite" hidden></div>
+  </section>
 </main>
 <footer class="site-footer">
   <div class="inner">
@@ -53,20 +57,55 @@
 // 後端（Cloudflare Worker）網址：請把下面這行換成你的 Worker 網址，例如 "https://名稱.帳號.workers.dev"
 const WORKER_URL = "https://dass-42.mimmyfan322.workers.dev/";
 
-const btn = document.getElementById('testBtn');
-const out = document.getElementById('testResult');
+// 共用：送一則 JSON 給後端，把結果顯示在指定的區塊。
+// formatOk(data) 決定成功時要顯示什麼；失敗時顯示錯誤訊息。
+async function callWorker(btn, out, payload, timeoutMs, formatOk) {
+  const show = (text, kind) => { out.textContent = text; out.className = 'result ' + kind; out.hidden = false; };
 
-function show(text, kind) {
-  out.textContent = text;
-  out.className = 'result ' + kind;
-  out.hidden = false;
-}
-
-btn.addEventListener('click', async () => {
   if (!/^https?:\/\/[\x21-\x7e]+$/.test(WORKER_URL)) { // 網址只能是英數字與符號；還留著中文預留文字就視為尚未設定
     show('尚未設定後端網址：請打開 ask.html，把程式碼開頭的 WORKER_URL 換成你的 Worker 網址。', 'err');
     return;
   }
   btn.disabled = true;
   show('連線中…', '');
-  const ctl = new AbortController(),
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), timeoutMs);
+  try {
+    const res = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: ctl.signal
+    });
+    const text = await res.text();
+    let data = null;
+    try { data = JSON.parse(text); } catch (e) { /* 不是 JSON 就照原文顯示 */ }
+    if (res.ok && data && data.ok) {
+      show(formatOk(data), 'ok');
+    } else {
+      const detail = data && data.error ? data.error : (data ? JSON.stringify(data, null, 2) : text);
+      show(`失敗（HTTP ${res.status}）\n${detail}`, 'err');
+    }
+  } catch (err) {
+    show(err.name === 'AbortError'
+      ? `連線逾時（超過 ${timeoutMs / 1000} 秒沒有回應）。`
+      : '無法連線到後端。可能原因：網址填錯、Worker 尚未部署，或後端的跨網域設定不允許這個網站呼叫。', 'err');
+  } finally {
+    clearTimeout(timer);
+    btn.disabled = false;
+  }
+}
+
+// 「測試連線」：送 {"action":"test"}，顯示後端回傳的 JSON
+const testBtn = document.getElementById('testBtn');
+testBtn.addEventListener('click', () =>
+  callWorker(testBtn, document.getElementById('testResult'), { action: 'test' }, 10000,
+    data => JSON.stringify(data, null, 2)));
+
+// 「測試 Gemini」：送固定問題，只顯示 Gemini 回覆的文字
+const askBtn = document.getElementById('askBtn');
+askBtn.addEventListener('click', () =>
+  callWorker(askBtn, document.getElementById('askResult'), { action: 'ask', question: '請用一句話自我介紹' }, 35000,
+    data => data.answer));
+</script>
+</body>
+</html>
