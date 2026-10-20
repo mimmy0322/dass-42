@@ -51,7 +51,7 @@
 </footer>
 <script>
 // 後端（Cloudflare Worker）網址：請把下面這行換成你的 Worker 網址，例如 "https://名稱.帳號.workers.dev"
-const WORKER_URL = "https://你的Worker網址.workers.dev";
+const WORKER_URL = "https://dass-42.mimmyfan322.workers.dev/";
 
 const btn = document.getElementById('testBtn');
 const out = document.getElementById('testResult');
@@ -69,29 +69,4 @@ btn.addEventListener('click', async () => {
   }
   btn.disabled = true;
   show('連線中…', '');
-  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 10000);
-  try {
-    const res = await fetch(WORKER_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'test' }),
-      signal: ctl.signal
-    });
-    const text = await res.text();
-    let pretty = text;
-    try { pretty = JSON.stringify(JSON.parse(text), null, 2); } catch (e) { /* 不是 JSON 就照原文顯示 */ }
-    if (res.ok) show(pretty, 'ok');
-    else show(`失敗（HTTP ${res.status}）\n${pretty}`, 'err');
-  } catch (err) {
-    const msg = err.name === 'AbortError'
-      ? '連線逾時（超過 10 秒沒有回應）。'
-      : '無法連線到後端。可能原因：網址填錯、Worker 尚未部署，或後端的跨網域設定不允許這個網站呼叫。';
-    show(msg, 'err');
-  } finally {
-    clearTimeout(timer);
-    btn.disabled = false;
-  }
-});
-</script>
-</body>
-</html>
+  const ctl = new AbortController(),
