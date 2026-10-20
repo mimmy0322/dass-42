@@ -5,6 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>問答｜年齡與憂鬱、焦慮、壓力的關係</title>
 <link rel="stylesheet" href="style.css">
+<style>
+  .api-test button {
+    font: inherit; cursor: pointer; color: #fff; background: var(--accent); border: 0;
+    border-radius: 8px; padding: 8px 18px;
+  }
+  .api-test button:hover { filter: brightness(1.08); }
+  .api-test button:disabled { opacity: .6; cursor: wait; }
+  .api-test button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .api-test .result {
+    margin: 12px 0 0; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--line);
+    background: #f6f8fb; font-size: .88rem; white-space: pre-wrap; word-break: break-word;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+  }
+  .api-test .result.ok { border-color: #8cc5a0; background: #f0faf3; }
+  .api-test .result.err { border-color: #e3a09c; background: #fff3f2; color: #8a1f1a; }
+</style>
 </head>
 <body>
 <header class="site-header">
@@ -22,6 +38,10 @@
     <p>這個區塊之後會提供常見問題與解答。目前若想了解資料如何取得、分數如何計算，請先參考「關於研究」；想查看圖表與統計數字，請前往「研究結果」。</p>
     <p><a href="about.html">前往關於研究</a>　|　<a href="results.html">前往研究結果</a></p>
   </section>
+  <section class="card api-test">
+    <button type="button" id="testBtn">測試連線</button>
+    <div class="result" id="testResult" role="status" aria-live="polite" hidden></div>
+  </section>
 </main>
 <footer class="site-footer">
   <div class="inner">
@@ -29,5 +49,49 @@
     <p>組員：【請填入組員姓名】</p>
   </div>
 </footer>
+<script>
+// 後端（Cloudflare Worker）網址：請把下面這行換成你的 Worker 網址，例如 "https://名稱.帳號.workers.dev"
+const WORKER_URL = "https://你的Worker網址.workers.dev";
+
+const btn = document.getElementById('testBtn');
+const out = document.getElementById('testResult');
+
+function show(text, kind) {
+  out.textContent = text;
+  out.className = 'result ' + kind;
+  out.hidden = false;
+}
+
+btn.addEventListener('click', async () => {
+  if (!/^https?:\/\/[\x21-\x7e]+$/.test(WORKER_URL)) { // 網址只能是英數字與符號；還留著中文預留文字就視為尚未設定
+    show('尚未設定後端網址：請打開 ask.html，把程式碼開頭的 WORKER_URL 換成你的 Worker 網址。', 'err');
+    return;
+  }
+  btn.disabled = true;
+  show('連線中…', '');
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 10000);
+  try {
+    const res = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'test' }),
+      signal: ctl.signal
+    });
+    const text = await res.text();
+    let pretty = text;
+    try { pretty = JSON.stringify(JSON.parse(text), null, 2); } catch (e) { /* 不是 JSON 就照原文顯示 */ }
+    if (res.ok) show(pretty, 'ok');
+    else show(`失敗（HTTP ${res.status}）\n${pretty}`, 'err');
+  } catch (err) {
+    const msg = err.name === 'AbortError'
+      ? '連線逾時（超過 10 秒沒有回應）。'
+      : '無法連線到後端。可能原因：網址填錯、Worker 尚未部署，或後端的跨網域設定不允許這個網站呼叫。';
+    show(msg, 'err');
+  } finally {
+    clearTimeout(timer);
+    btn.disabled = false;
+  }
+});
+</script>
 </body>
 </html>
