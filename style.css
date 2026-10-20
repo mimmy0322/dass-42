@@ -1,0 +1,70 @@
+@charset "UTF-8";
+
+/* ===== 共用外觀：四個分頁都會載入 ===== */
+:root {
+  --bg: #fff8dc; --card: #fff; --ink: #1f2430; --muted: #5d6677; --line: #dfe3ea; --accent: #2a6fdb;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: -apple-system, "Segoe UI", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  line-height: 1.6;
+  min-height: 100vh; display: flex; flex-direction: column;
+}
+main { flex: 1; width: 100%; max-width: 1000px; margin: 0 auto; padding: 24px 16px 48px; }
+h1 { font-size: 1.6rem; margin: 0 0 8px; }
+h2 { font-size: 1.15rem; margin: 0 0 8px; }
+h3 { font-size: .98rem; margin: 16px 0 4px; }
+p { margin: 0 0 10px; }
+a { color: var(--accent); }
+.lead { color: var(--muted); margin: 0 0 20px; }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+.card ul, .card ol { margin: 0 0 6px; padding-left: 1.3em; }
+.card li { margin-bottom: 6px; font-size: .94rem; }
+.card p { font-size: .94rem; }
+
+/* ===== 導覽列 ===== */
+.site-header { background: #fff; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 30; }
+.nav {
+  max-width: 1000px; margin: 0 auto; padding: 0 16px;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 16px;
+}
+.nav .brand { font-weight: 700; color: var(--ink); text-decoration: none; padding: 12px 0; }
+.nav ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; }
+.nav li a {
+  display: block; padding: 12px 14px; color: var(--muted); text-decoration: none;
+  border-bottom: 3px solid transparent; font-size: .95rem;
+}
+.nav li a:hover { color: var(--ink); background: #f4f6fa; }
+.nav li a[aria-current="page"] { color: var(--accent); font-weight: 700; border-bottom-color: var(--accent); }
+.nav a:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+/* ===== 頁尾 ===== */
+.site-footer { background: #fff; border-top: 1px solid var(--line); color: var(--muted); font-size: .9rem; }
+.site-footer .inner {
+  max-width: 1000px; margin: 0 auto; padding: 14px 16px; display: flex; flex-wrap: wrap; gap: 4px 28px;
+}
+.site-footer p { margin: 0; font-size: .9rem; }
+
+/* ===== 首頁：數字卡片與入口 ===== */
+.grid { display: grid; gap: 16px; margin-bottom: 16px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+.grid .card { margin-bottom: 0; }
+.stat .num { font-size: 2.1rem; font-weight: 700; line-height: 1.2; color: var(--accent); }
+.stat .label { font-weight: 600; margin: 2px 0 4px; }
+.stat .note { color: var(--muted); font-size: .85rem; margin: 0; }
+.entry { display: block; text-decoration: none; color: var(--ink); transition: border-color .15s, box-shadow .15s; }
+.entry:hover { border-color: var(--accent); box-shadow: 0 4px 14px rgba(42,111,219,.14); }
+.entry:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.entry h3 { margin: 0 0 4px; color: var(--accent); font-size: 1.05rem; }
+.entry p { color: var(--muted); font-size: .9rem; margin: 0; }
+.section-title { font-size: 1.05rem; margin: 24px 0 10px; }
+
+/* ===== 即將推出 ===== */
+.soon { text-align: center; padding: 40px 16px; border-style: dashed; }
+.soon .badge {
+  display: inline-block; background: #fff1a0; color: #4a3b00; font-weight: 700; font-size: .85rem;
+  border-radius: 999px; padding: 2px 12px; margin-bottom: 10px;
+}
+.soon p { color: var(--muted); max-width: 520px; margin-left: auto; margin-right: auto; }
